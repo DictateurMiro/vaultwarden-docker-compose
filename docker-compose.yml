@@ -5,11 +5,10 @@ services:
     container_name: vaultwarden
     restart: unless-stopped
     ports:
-     - 9445:80 #map any custom port to use (replace 8445 not 80)
+     - 50080:80 #map any custom port to use (replace 50080 not 80)
     volumes:
      - ./bitwarden:/data:rw
     environment:
-#     - ROCKET_TLS={certs="/ssl/certs/certs.pem",key="/ssl/private/key.pem"}  // Environment variable is specific to the Rocket web server
      - ADMIN_TOKEN=${ADMIN_TOKEN}
      - WEBSOCKET_ENABLED=true
      - SIGNUPS_ALLOWED=false
@@ -20,9 +19,16 @@ services:
      - SMTP_USERNAME=${SMTP_USERNAME}
      - SMTP_PASSWORD=${SMTP_PASSWORD}
      - DOMAIN=${DOMAIN}
-
-#uncomment below network part if you are using Nginx Proxy Manager, or you can remove the same
-#networks:
-#  default:
-#    external:
-#      name: nginx-proxy-network
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: always
+    ports:
+      - "192.168.1.100:443:443"
+      - "192.168.1.100:80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-config:/config
+      - ./caddy-data:/data
+    depends_on:
+      - vaultwarden
